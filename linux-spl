@@ -1,0 +1,17 @@
+Detecting Brute force attack (ssh)
+----------------------------------
+
+fail* password | stats count by src, dest, user, sourcetype | sort - count | where count > 2
+
+
+index="linux" sourcetype=linux_secure host=centos-uf sshd CASE(Invalid) user
+
+
+!index=linux host=centos-uf sourcetype=linux_secure type=USER_LOGIN res=failed | stats count by acct| sort - count
+
+
+index=linux source="/var/log/audit/audit.log" res=failed
+
+index=linux source="/var/log/audit/audit.log" res=failed| top limit=20 res
+
+index=linux source="/var/log/audit/audit.log" res=failed| top limit=20 addr

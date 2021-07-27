@@ -1,0 +1,49 @@
+Detecting Windows login successes and failures
+----------------------------------------------
+
+index=* sourcetype=win*security user=* user!=""
+| stats count(eval(action="success")) as successes
+count (eval(action="failure")) as failures by user, ComputerName
+| where successes>0 AND failures>100
+
+
+
+Successfull logins
+------------------
+
+index=yourindex
+sourcetype="WinEventLog:Security" 
+EventCode=4624 
+|fillnull value=NULL
+| eval Account_Name = mvindex(Account_Name,1) 
+| eval Security_ID = mvindex(Security_ID,1) 
+| eval LoginType=case(Logon_Type=3,"RPC (not RDP)",Logon_Type=4,"Batch",Logon_Type=5,"Service",Logon_Type=7,"Screen Unlock/Session Resume",Logon_Type=10,"Remote Desktop",Logon_Type=11,"Cached",Logon_Type=9,"New Credentials")
+|stats count(Security_ID) as "Login Events" by Security_ID, Account_Name, LoginType,host,_time  |sort + Security_ID
+
+
+
+EventCode=4625 | stats count by Account_Name, Workstation_Name, Failure_Reason, Source_Network_Address | search count>5
+
+
+windows host=hostname
+
+
+
+
+Failure login
+-------------
+
+
+index=yourindex
+sourcetype="WinEventLog:Security" 
+EventCode=4625
+|fillnull value=NULL
+| eval Account_Name = mvindex(Account_Name,1) 
+| eval Security_ID = mvindex(Security_ID,1) 
+| eval LoginType=case(Logon_Type=3,"RPC (not RDP)",Logon_Type=4,"Batch",Logon_Type=5,"Service",Logon_Type=7,"Screen Unlock/Session Resume",Logon_Type=10,"Remote Desktop",Logon_Type=11,"Cached",Logon_Type=9,"New Credentials")
+|stats count(Security_ID) as "Login Events" by Security_ID, Account_Name, LoginType,host,_time  |sort + Security_ID
+
+
+
+
+sourcetype="WinEventLog:Security" ("EventCode=4625")
